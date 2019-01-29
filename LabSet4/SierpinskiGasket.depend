@@ -1,0 +1,5 @@
+# depslib dependency file v1.0
+1548744813 source:/home/linux/1SI16CS007/SierpinskiGasket/main.c
+	<stdio.h>
+	<GL/glut.h>
+
