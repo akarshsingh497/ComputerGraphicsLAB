@@ -1,4 +1,5 @@
 #include<GL/glut.h>
+
 void draw_points();
 void draw_lines();
 void draw_line_strip();
@@ -157,5 +158,3 @@ void draw_polygon()
     glVertex2f(30.0,20.0);
     glVertex2f(20.0,30.0);
 }
-
-
