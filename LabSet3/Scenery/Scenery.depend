@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1549958285 source:/home/linux/1SI16CS007/LabSet3/Scenery/main.c
+	<GL/gl.h>
+	<GL/glut.h>
+	<GL/glu.h>
+
