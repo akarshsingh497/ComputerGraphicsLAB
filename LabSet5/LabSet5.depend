@@ -1,0 +1,5 @@
+# depslib dependency file v1.0
+1550560802 source:/home/linux/1SI16CS007/LabSet5/main.c
+	<GL/glut.h>
+	<stdio.h>
+
