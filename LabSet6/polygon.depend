@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1551247473 source:/home/linux/1SI16CS108/polygon/main.c
+	<stdio.h>
+	<stdlib.h>
+	<GL/glut.h>
+

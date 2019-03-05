@@ -3,8 +3,7 @@
 #include<GL/glut.h>
 
 #define MAX_POLY 8
-#define MAX_VER 10
-
+#define MAX_VER 30
 #define TRUE 1
 #define FALSE 0
 
@@ -13,21 +12,17 @@ typedef struct polygon
     int color;
     int used;
     int xmin, xmax,ymin,ymax;
-    int xc, yc;
     int nvtcs;
     int x[MAX_VER],y[MAX_VER];
 }polygon;
 
 int picking = FALSE;
-int moving =FALSE;
+int del = FALSE;
 int in_poly = -1;
 int present_color = 0;
 
 GLsizei wh =500, ww = 500;
-
-
-GLfloat colors[8][3]= {{0.0,0.0,0.0},{1.0,0.0,0.0},{0.0,1.0,0.0},{0.0,0.0,1.0},{1.0,1.0,0.0},{1.0,0.0,1.0},{0.0,1.0,1.0},
-{0.5,0.5,1.0}};
+GLfloat colors[2][3]= {{1.0,0.0,0.0},{0.0,1.0,0.0}};
 
 polygon polys[MAX_POLY];
 int pick_poly(int x,int y);
@@ -57,12 +52,11 @@ void Mymouse(int btn, int st,int x, int y)
 {
     int i,j;
     y=wh-y;
-    if(btn==GLUT_LEFT_BUTTON && st==GLUT_DOWN && !picking && !moving)
+    if(btn==GLUT_LEFT_BUTTON && st==GLUT_DOWN && !picking  )
     {
     /* adding vertices*/
 
-        moving = FALSE;
-        if(in_poly>=0)
+           if(in_poly>=0)
         {
             if(polys[in_poly].nvtcs == MAX_VER)
             {
@@ -75,20 +69,34 @@ void Mymouse(int btn, int st,int x, int y)
             polys[in_poly].nvtcs++;
         }
     }
-   if(btn==GLUT_LEFT_BUTTON && st==GLUT_DOWN && picking && !moving)
+   if(btn==GLUT_LEFT_BUTTON && st==GLUT_DOWN && picking && !del)
    {
-    /*delete polygon*/
-        picking= FALSE;
-        moving = FALSE;
-        j= pick_poly(x,y);
-        if(j>=0)
-        {
-            polys[j].used = FALSE;
-            in_poly = -1;
-            glutPostRedisplay();
-        }
+    picking= FALSE;
+    j= pick_poly(x,y);
+    if(j>=0)
+    {
 
+         /* highlight selected poylgon with select color*/
+          polys[j].color = present_color;
+          present_color =0;
+           in_poly = -1;
      }
+         glutPostRedisplay();
+
+    }
+    if(btn==GLUT_LEFT_BUTTON && st==GLUT_DOWN && picking && del)
+    {
+    /*delete polygon*/
+    picking= FALSE;
+    j= pick_poly(x,y);
+    if(j>=0)
+    {
+            polys[j].used = FALSE;
+            del=FALSE;
+            in_poly = -1;
+        }
+         glutPostRedisplay();
+}
 }
 
 int pick_poly(int x, int y)
@@ -102,8 +110,7 @@ int pick_poly(int x, int y)
            (y>=polys[i].ymin) && (y<=polys[i].ymax))
            {
                 in_poly =i;
-                moving =TRUE;
-                return i;
+                                return i;
            }
 
     }
@@ -112,44 +119,7 @@ int pick_poly(int x, int y)
            return -1;
 
 }
-void mymotion(int x, int y)
-{
-/* find if we are inside a polygon */
-    float dx,dy;
-    int i,j;
-    if(moving)
-    {
-        y=wh-y;
-        j= pick_poly(x,y);
-        if(j<0)
-        {
-                printf("not in a polygon\n");
-                return;
-        }
 
-        dx= x-polys[j].xc;
-        dy = y-polys[j].yc;
-        for(i=0;i<polys[j].nvtcs;i++)
-        {
-            polys[j].x[i]+=dx;
-            polys[j].y[i]+=dy;
-        }
-        /* update the bounding box */
-        polys[j].xc+=dx;
-        polys[j].yc+=dy;
-        if(dx>0) polys[j].xmax+=dx;
-        else polys[j].xmin+=dx;
-        if(dy>0) polys[j].ymax+=dy;
-        else polys[j].ymin+=dy;
-        glutPostRedisplay();
-    }
-}
-
-void colormenu(int id )
-{
-    present_color = id;
-    if(in_poly>=0) polys[in_poly].color = id;
-}
 
 void mainmenu(int id)
 {
@@ -157,8 +127,10 @@ void mainmenu(int id)
     switch(id)
     {
         case 1: /*create a new polygon */
-            moving = FALSE;
-            /*find a polygon which is not in use now */
+
+                  /*find a polygon which is not in use now */
+            picking = FALSE;
+            del = FALSE;
             for(i=0; i< MAX_POLY;i++)
                 if(polys[i].used == FALSE) break;
 
@@ -172,18 +144,13 @@ void mainmenu(int id)
             polys[i].used = TRUE;
             polys[i].nvtcs =0;
             in_poly= i;
-            picking = FALSE;
-            break;
+                        break;
         case 2: /*  end polygon and find bounding box and center*/
-            moving =FALSE;
-            if(in_poly>=0)
+                    if(in_poly>=0)
             {
                 /*initialize the bouning box and center to frist vertex */
                 polys[in_poly].xmax = polys[in_poly].xmin = polys[in_poly].x[0];
                 polys[in_poly].ymax = polys[in_poly].ymin = polys[in_poly].y[0];
-
-                polys[in_poly].xc = polys[in_poly].x[0];
-                polys[in_poly].yc = polys[in_poly].y[0];
 
                 /* now find the actual center and limits of bounding box*/
                 for(i=1;i<polys[in_poly].nvtcs;i++)
@@ -197,24 +164,29 @@ void mainmenu(int id)
                     else if(polys[in_poly].y[i] > polys[in_poly].ymax)
                         polys[in_poly].ymax = polys[in_poly].y[i];
 
-                    polys[in_poly].xc += polys[in_poly].x[i];
-                    polys[in_poly].yc += polys[in_poly].y[i];
                 }
 
-                polys[in_poly].xc = polys[in_poly].xc/ polys[in_poly].nvtcs;
-                polys[in_poly].yc = polys[in_poly].yc/ polys[in_poly].nvtcs;
             }
             in_poly = -1;
             glutPostRedisplay();
             break;
         case 3: /* set picking mode */
                 picking = TRUE;
-                moving = FALSE;
+                present_color =1;
+                del = FALSE;
+
                 break;
-        case 4: /* set moving mode */
-                moving = TRUE;
+            case 4: /* delete a polygon */
+                picking = TRUE;
+                del = TRUE;
                 break;
-        case 5: exit(0);
+        case 5: /* set picking mode */
+                picking = TRUE;
+                present_color =0;
+                del = FALSE;
+
+                break;
+        case 6:exit(0);
         }
 }
 
@@ -239,34 +211,24 @@ void display()
 
 int main(int argc,char **argv)
 {
-   int cm;
    glutInit(&argc,argv);
     glutInitDisplayMode(GLUT_SINGLE|GLUT_RGB);
     glutCreateWindow("Polygon Modeler");
     glutReshapeFunc(myReshape);
     glutDisplayFunc(display);
     myinit();
-    cm= glutCreateMenu(colormenu);
-    glutAddMenuEntry("Black", 0);
-    glutAddMenuEntry("Red",1);
-    glutAddMenuEntry("Green",2);
-    glutAddMenuEntry("Blue",3);
-    glutAddMenuEntry("Yellow",4);
-    glutAddMenuEntry("Magenta",5);
-    glutAddMenuEntry("Cyan",6);
-    glutAddMenuEntry("unknown",7);
-
+/* Create Menu*/
     glutCreateMenu(mainmenu);
     glutAddMenuEntry("new polygon", 1);
     glutAddMenuEntry("end polygon",2);
-    glutAddMenuEntry("delete polygon", 3);
-    glutAddMenuEntry("move polygon",4);
-    glutAddMenuEntry("quit", 5);
-    glutAddSubMenu("Colors", cm);
+    glutAddMenuEntry("Select polygon", 3);
+    glutAddMenuEntry("delete polygon", 4);
+    glutAddMenuEntry("deselect", 5);
+    glutAddMenuEntry("quit", 6);
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 
     glutMouseFunc(Mymouse);
-    glutMotionFunc(mymotion);
     glutMainLoop();
         return 0;
 }
+
