@@ -147,7 +147,7 @@ int main(int argc,char **argv)
 	glutDisplayFunc(display);
 	init();
 	glEnable(GL_DEPTH_TEST);
-	id= glutCreateMenu(colormenu);
+	id=glutCreateMenu(colormenu);
 	glutAddMenuEntry("RED",0);
 	glutAddMenuEntry("GREEN",1);
 	glutAddMenuEntry("BLUE",2);
