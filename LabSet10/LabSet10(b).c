@@ -1,10 +1,10 @@
-//Flood filling a square
+//Scan-Line Fill
 #include<stdio.h>
 #include <GL/glut.h>
 
+float colr[3];
 float fgcolor[] = { 0.0,0.0,1.0};
 float bgcolor[] = { 1.0,1.0,1.0};
-float colr[3];
 
 void init()
 {
@@ -18,7 +18,6 @@ void init()
 
 float* getPixelColor(float x, float y)
 {
-
     glReadPixels(x, y, 1, 1, GL_RGB, GL_FLOAT, colr);
     return colr;
 }
@@ -32,27 +31,26 @@ void setPixelColor(float x, float y)
     glFlush();
 }
 
-void floodFill(float x,float y)
+void scanFill()
 {
     float *colr;
-    colr = getPixelColor(x, y);
-    if(*(colr+0) == bgcolor[0] && *(colr+1) == bgcolor[1] && *(colr+2) == bgcolor[2])
+    float x,y;
+    for(y=140.0;y<340;y++)
     {
-        //printf("current pixel\n");
-        setPixelColor(x, y);
-
-        floodFill(x+1, y);
-        floodFill(x-1, y);
-        floodFill(x, y-1);
-        floodFill(x, y+1);
-    }
+        for(x=120.0;x<420;x++)
+        {
+            colr = getPixelColor(x, y);
+            if(*(colr+0) == bgcolor[0] && *(colr+1) == bgcolor[1] && *(colr+2) == bgcolor[2])
+                setPixelColor(x, y);
+        }
+	}
 }
 
 void onMouseClick(int button, int state, int x, int y)
 {
 
     if(button==GLUT_LEFT_BUTTON && state==GLUT_DOWN)
-    floodFill(121.0,141.0);
+    scanFill();
 }
 
 void display(void)
@@ -72,7 +70,7 @@ int main(int argc, char** argv)
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE);
     glutInitWindowSize(640, 480);
-    glutCreateWindow("Flood Fill");
+    glutCreateWindow("Scan-Line Fill");
     init();
     glutDisplayFunc(display);
     glutMouseFunc(onMouseClick);
